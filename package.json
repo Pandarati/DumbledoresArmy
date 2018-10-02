@@ -1,0 +1,28 @@
+{
+  "name": "geoquiz",
+  "version": "1.0.0",
+  "description": "A Geography based trivia web application.",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "ts-node ./src/server.ts",
+    "start": "node ./dist/server.js",
+    "prod": "npm run build && npm start",
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pandarati/DumbledoresArmy.git"
+  },
+  "author": "Aayush Gupta, Biswash Adhikari, Jonathan McKinley, Demetrius Robinson",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Pandarati/DumbledoresArmy/issues"
+  },
+  "homepage": "https://github.com/Pandarati/DumbledoresArmy#readme",
+  "dependencies": {
+    "@types/express": "^4.16.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3"
+  }
+}
