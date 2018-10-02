@@ -1,6 +1,7 @@
 # GeoQuiz
 
 This is a Geography based trivia application that allows users to take on challenges and create challenges for others. 
+Live version of the current project is at https://hello-world-218204.appspot.com 
 
 # Installation
 
