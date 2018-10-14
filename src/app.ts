@@ -1,6 +1,5 @@
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import { Request, Response } from "express";
 import * as path from "path";
 import * as admin from 'firebase-admin'
 import * as firebase from 'firebase'
@@ -16,7 +15,6 @@ class App {
     this.getServiceAccountCredentials();
     this.initializeAuthenticationWithFirebase();
     this.initializeFirebaseDataStore();
-    this.initializeModels();
     this.initializeAuthMiddleware();
     this.config();
     this.routes();
@@ -30,40 +28,6 @@ class App {
   public firebaseAdmin: admin.app.App;
   private firebaseDatabase: admin.firestore.Firestore;
 
-  private initializeAuthMiddleware(): void {
-    var self = this;
-    const authMiddleware = function (req, res, next) {
-      if (req.originalUrl === '/' || req.originalUrl === '/api' || req.originalUrl === '/challenge/:id') {
-        next();
-      } else {
-        var accessToken = req.headers['authorization'] || '';
-        self.firebaseAdmin.auth().verifyIdToken(accessToken)
-          .then(function (decodedToken) {
-            req.uid = decodedToken.uid;
-            next();
-          })
-          .catch(function (error) {
-            res.sendStatus(404);
-          });
-      };
-      this.app.use(authMiddleware);
-    }
-  }
-
-  private initializeModels() {
-    const userModel = new User(this.firebaseDatabase);
-    const challengeModel = new Challenge(this.firebaseDatabase);
-  }
-
-  private initializeFirebaseDataStore(): void {
-    this.firebaseDatabase = admin.firestore();
-  }
-
-  private config(): void {
-    this.app.use(bodyParser.json());
-    this.app.use(bodyParser.urlencoded({ extended: false }));
-  }
-
   private getServiceAccountCredentials() {
     this.serviceAccount = require(path.join(__dirname, './../secrets/serviceAccountKey.json'));
   }
@@ -71,18 +35,42 @@ class App {
   private initializeAuthenticationWithFirebase(): void {
     this.firebaseAdmin = admin.initializeApp({
       credential: admin.credential.cert(this.serviceAccount),
-      databaseURL: 'https://geo-quiz-239d5.firebaseio.com'
+      databaseURL: 'https://geoquiz-1e874.firebaseio.com'
     });
   }
 
+  private initializeFirebaseDataStore(): void {
+    this.firebaseDatabase = admin.firestore();
+  }
+
+  private initializeAuthMiddleware(): void {
+    const authMiddleware = (req, res, next) => {
+      var accessToken = req.headers['authorization'] || '';
+      this.firebaseAdmin.auth().verifyIdToken(accessToken)
+        .then(function (decodedToken) {
+          console.log(decodedToken.id);
+          req.id = decodedToken.uid;
+          next();
+        })
+        .catch(function (error) {
+          res.sendStatus(404);
+        });
+    }
+    this.app.use(authMiddleware);
+  }
+
+  private config(): void {
+    this.app.use(bodyParser.json());
+    this.app.use(bodyParser.urlencoded({ extended: false }));
+  }
+
   private routes(): void {
-    this.app.use('/api/user', new UserController(this.firebaseDatabase).userController);
-    this.app.use('/api/challenge', new ChallengeController(this.firebaseDatabase).challengeController);
-    this.app.use('/api/challengeList', new ChallengeListController(this.firebaseDatabase).challengeListController);
+    this.app.use('/api/user', new UserController(new User(this.firebaseDatabase)).userController);
+    this.app.use('/api/challenge', new ChallengeController(new Challenge(this.firebaseDatabase)).challengeController);
+    this.app.use('/api/challengeList', new ChallengeListController(new Challenge(this.firebaseDatabase)).challengeListController);
 
     const router = express.Router();
     router.get('/', (req, res) => {
-      console.log(req);
       res.status(200).sendFile(path.join(__dirname, './../views/index.html'));
     });
 
@@ -118,7 +106,6 @@ class App {
         }
       });
     })
-    console.log(path.join(__dirname, './../controllers/challengeContoller.ts'));
     this.app.use('/', router)
   }
 
@@ -127,14 +114,14 @@ class App {
   private createUserAndGetId(): void {
 
     firebase.initializeApp({
-      apiKey: "AIzaSyDbO2kBol-cwsFn9xnlWTLoieFdTFE_sG0",
-      authDomain: "geo-quiz-239d5.firebaseapp.com",
-      databaseURL: "https://geo-quiz-239d5.firebaseio.com",
-      projectId: "geo-quiz-239d5",
-      storageBucket: "geo-quiz-239d5.appspot.com",
-      messagingSenderId: "318947333544"
+      apiKey: "AIzaSyCjAcWtMLdUUn1qHnIgG7Z5i_LyQh9FXn0",
+      authDomain: "geoquiz-1e874.firebaseapp.com",
+      databaseURL: "https://geoquiz-1e874.firebaseio.com",
+      projectId: "geoquiz-1e874",
+      storageBucket: "geoquiz-1e874.appspot.com",
+      messagingSenderId: "804254899672"
     });
-    firebase.auth().signInWithEmailAndPassword("aayush.gupta@example.com", "secretPassword")
+    firebase.auth().signInWithEmailAndPassword("aayush.gupta2@example.com", "heythere")
       .then((userCred) => {
         var user = userCred.user;
         user.getIdToken(true)

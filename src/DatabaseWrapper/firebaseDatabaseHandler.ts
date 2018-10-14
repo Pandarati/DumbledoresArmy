@@ -12,22 +12,9 @@ export class FirebaseDatabaseHandler{
     public getDocumentSnapshotForCollectionAtRefAndId(collectionName: string, id: string): Promise<DocumentSnapshot>{
         /**
          * Returns DocumentSnapshot for the requested data. 
-         * Add id to the data you get.
          */
         var collectionReference = this.firebaseDatastore.collection(collectionName);
-        return new Promise<DocumentSnapshot>(function(resolve, reject){
-            collectionReference.doc(id).get()
-            .then(snapshot => {
-                if (snapshot.exists){
-                    resolve(snapshot);
-                }else{
-                    reject(new Error("Document does not exist"));
-                }
-            })
-            .catch(error => {
-                reject(error);
-            })
-        });
+        return collectionReference.doc(id).get();
     }
 
     public patchRecordForCollectionAtRefAndId(collectionName: string, id: string, objectToUpdate: object): Promise<object>{
@@ -39,10 +26,10 @@ export class FirebaseDatabaseHandler{
         return new Promise<object>(function(resolve, reject){
             collectionReference.doc(id).set(objectToUpdate)
             .then(result => {
-                return objectToUpdate;
+                resolve(result);
             })
             .catch(error => {
-                return new Error("Error Patching record in the database for collection" + collectionName + ": " + error);
+                reject(error);
             })
         });
     }
@@ -53,14 +40,14 @@ export class FirebaseDatabaseHandler{
          */
         var collectionReference = this.firebaseDatastore.collection(collectionName);
         return new Promise<object>(function(resolve, reject){
-            collectionReference.doc().set(objectToPost)
+            var documentReference = collectionReference.doc();
+            objectToPost["id"] = documentReference.id;
+            documentReference.set(objectToPost)
             .then(result => {
-                objectToPost["id"] = collectionReference.id;
-                objectToPost["timePosted"] = result.writeTime;
-                return objectToPost;
+                resolve(objectToPost);
             })
             .catch(error => {
-                return new Error("Error writing to the database for collection " + collectionName + ": " + error);
+                reject(error);
             })
         });
     } 
@@ -73,12 +60,10 @@ export class FirebaseDatabaseHandler{
         return new Promise<object>(function(resolve, reject){
             collectionReference.doc(id).set(objectToPost)
             .then(result => {
-                objectToPost["id"] = collectionReference.id;
-                objectToPost["timePosted"] = result.writeTime;
-                return objectToPost;
+                resolve(objectToPost);
             })
             .catch(error => {
-                return new Error("Error writing to the database for collection " + collectionName + ": " + error);
+                reject(error);
             })
         });
     } 
@@ -89,13 +74,13 @@ export class FirebaseDatabaseHandler{
          * Returns boolean true if delete complete. 
          */
         var collectionReference = this.firebaseDatastore.collection(collectionName);
-        return new Promise<boolean>(function(resolve, reject){
+        return new Promise<boolean>((resolve, reject)=>{
             collectionReference.doc(id).delete()
             .then(writeResult => {
-                return true;
+                resolve(true);
             })
             .catch(error => {
-                return new Error("Error deleting record with id " + id + " for collection " + collectionName + ": " + error);
+                reject(error);
             })
         })
     }

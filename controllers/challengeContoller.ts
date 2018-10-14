@@ -1,6 +1,4 @@
-import * as admin from "firebase-admin";
 import * as express from "express";
-import { FirebaseDatabaseHandler } from "./../src/DatabaseWrapper/firebaseDatabaseHandler";
 import {Challenge} from "./../Models/Challenge";
 
 export class ChallengeController{
@@ -23,51 +21,66 @@ export class ChallengeController{
          */
 
         this.challengeController.get('/:id', (req, res) => {
-            // Get challenge with id. 
-            // Get the user id from req,
-            // Check if the user has this challenge in the list of challenges posted.
-            // If not, return unauthorized access. 
-            // If true, get the challenge from the challengeCollection. 
             res.type('json');
-            this.challengeModel.
-            // this.firebaseDatabaseHandler.getRecordForCollectionAtRefAndId(ChallengeController.COLLECTION_NAME, req.query.id);
+            console.log(req.params.id);
+            this.challengeModel.getChallengeWithId(req.params.id)
+            .then(challengeObject => {
+                res.status(200).send(challengeObject);
+            })
+            .catch(error => {
+                res.status(400).send(this.createErrorJsonResponse(error));
+            })
         });
 
         this.challengeController.post('/', (req, res) => {
-            // Post a challenge for that user.
-            // Add the userID field to the Challenge. 
-            // After you get the challenge back, append it
-            // the Challenges Posted by the user. 
             res.type('json');
-            res.send({
-                "Data": "This endpoint is used to post a challenge for the user"
+            this.challengeModel.createNewChallenge(req["id"], req.body)
+            .then(challengeObject => {
+                res.status(200).send(challengeObject);
+            })
+            .catch(error => {
+                res.status(400).send(this.createErrorJsonResponse(error));
             })
         });
 
         this.challengeController.patch('/:id', (req, res) => {
-            // Get challenge with id. 
-            // Get the user id from req,
-            // Check if the user has this challenge in the list of challenges posted.
-            // If not, return unauthorized access. 
-            // If true, get the challenge object from the req. 
-            // Check for fields that are immutable to be the same. 
-            // Update the challenge object. 
             res.type('json');
-            res.send({
-                "Data": "This endpoint is used to update a challenge."
+            this.challengeModel.updateChallengeWithId(req.query.id, req.body)
+            .then(challengeObject => {
+                res.status(200).send(challengeObject);
+            })
+            .catch(error => {
+                res.status(400).send(this.createErrorJsonResponse(error));
             })
         });
 
         this.challengeController.delete('/:id', (req, res) => {
-            // Get challenge with id. 
-            // Get the user id from req,
-            // Check if the user has this challenge in the list of challenges posted.
-            // If not, return unauthorized access. 
-            // If true, delete the object and return 200 OK status. 
             res.type('json');
-            res.send({
-                "Data": "This endpoint is used to delete a challenge with the given challenge_id"
+            console.log(req.params.id);
+            this.challengeModel.deleteNewChallenge(req.params.id)
+            .then(isDeleted => {
+                res.status(200).send(isDeleted);
+            })
+            .catch(error => {
+                res.status(400).send(this.createErrorJsonResponse(error));
             })
         });
+
+        this.challengeController.get('/:username/posted', (req, res) => {
+            res.type('json');
+            this.challengeModel.getListOfChallengesPostedByUser(req.params.username)
+            .then(listOfChallenges => {
+                res.status(200).send(listOfChallenges);
+            })
+            .catch(error => {
+                res.status(400).send(this.createErrorJsonResponse(error));
+            })
+        })
+    }
+
+    private createErrorJsonResponse(error: any): object{
+        return {
+            "Error": error.message
+        };
     }
 }
