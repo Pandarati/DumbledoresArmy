@@ -3,11 +3,11 @@ import * as bodyParser from "body-parser";
 import * as path from "path";
 import * as admin from 'firebase-admin'
 import * as firebase from 'firebase'
-import { ChallengeController } from "./../controllers/challengeContoller";
-import { ChallengeListController } from "./../controllers/challengeListController";
-import { UserController } from "./../controllers/userController";
-import { User } from "./../Models/User";
-import { Challenge } from "./../Models/Challenge";
+import { ChallengeController } from "./controllers/challengeContoller";
+import { GeneralController } from "./controllers/generalContoller";
+import { UserController } from "./controllers/userController";
+import { User } from "./Models/User";
+import { Challenge } from "./Models/Challenge";
 
 class App {
   constructor() {
@@ -29,7 +29,7 @@ class App {
   private firebaseDatabase: admin.firestore.Firestore;
 
   private getServiceAccountCredentials() {
-    this.serviceAccount = require(path.join(__dirname, './../secrets/serviceAccountKey.json'));
+    this.serviceAccount = require(path.join(__dirname, './secrets/serviceAccountKey.json'));
   }
 
   private initializeAuthenticationWithFirebase(): void {
@@ -65,48 +65,9 @@ class App {
   }
 
   private routes(): void {
-    this.app.use('/api/user', new UserController(new User(this.firebaseDatabase)).userController);
-    this.app.use('/api/challenge', new ChallengeController(new Challenge(this.firebaseDatabase)).challengeController);
-    this.app.use('/api/challengeList', new ChallengeListController(new Challenge(this.firebaseDatabase)).challengeListController);
-
-    const router = express.Router();
-    router.get('/', (req, res) => {
-      res.status(200).sendFile(path.join(__dirname, './../views/index.html'));
-    });
-
-    // Endpoint with all the API-endpoints.
-    router.get('/api', function (req, res) {
-      res.type('json');
-      res.send({
-        "Possible routes": {
-          "Publicly Accessible": {
-            "GET": {
-              "/api/challenge/challenge_id": "Get a single challenge with the challenge_id",
-              "/api/challengeList": "Get all the challenges posted so far",
-              "/api/challenges/latitude_1/longitude_1/latitude_2/longitude_2": "Get all the challenges posted for the location specified"
-            },
-            "POST": {}
-          },
-          "User-Authentication-Required": {
-            "GET": {
-              "/api/challenge/challenge_id": "Get a particular challenge",
-              "/api/challengeList/posted": "Get a list of all the challenges posted by a user",
-              "/api/challengeList/taken": "Get a list of all the challenges taken by a user"
-            },
-            "POST": {
-              "/api/challenge": "Post a challenge",
-            },
-            "PATCH": {
-              "/api/challenge/challenge_id": "Edit a challenge"
-            },
-            "DELETE": {
-              "/api/challenge/challenge_id": "Delete a challenge"
-            }
-          }
-        }
-      });
-    })
-    this.app.use('/', router)
+    this.app.use('/api/users', new UserController(new User(this.firebaseDatabase)).userController);
+    this.app.use('/api/challenges', new ChallengeController(new Challenge(this.firebaseDatabase)).challengeController);
+    this.app.use('/', new GeneralController().generalController);
   }
 
 
@@ -121,7 +82,7 @@ class App {
       storageBucket: "geoquiz-1e874.appspot.com",
       messagingSenderId: "804254899672"
     });
-    firebase.auth().signInWithEmailAndPassword("aayush.gupta2@example.com", "heythere")
+    firebase.auth().signInWithEmailAndPassword("aayush.gupta@bison.howard.edu", "aayush")
       .then((userCred) => {
         var user = userCred.user;
         user.getIdToken(true)
@@ -136,7 +97,6 @@ class App {
         console.log("Error", error);
       });
   }
-
 }
 
 export default new App().app;

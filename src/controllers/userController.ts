@@ -2,10 +2,9 @@ import * as express from "express";
 import { User } from "./../Models/User";
 
 export class UserController {
-
     constructor(userModel: User) {
         this.userController = express.Router();
-        this.setupChallengeController();
+        this.setupUserController();
         this.userModel = userModel;
     }
 
@@ -13,12 +12,15 @@ export class UserController {
     private userModel: User;
     private static COLLECTION_NAME: string = "/Users";
 
-    private setupChallengeController() {
+    private setupUserController() {
         /**
-         * 1. Get User details. 
-         * 2. Create a new user. 
-         * 3. Edit user info. 
-         * 4. Get list of all users.
+            GET / => Get list of all users. 
+            GET /:username => Get detail for a user. 
+            GET /:username/challengesPosted => Get challenges posted by a user.
+            GET /:username/challengesTaken => Get challenges taken by a user.
+            PATCH /:username => Edit user info.
+            DELETE /:username => Delete a user.
+            POST / => Create a new user.
          */
 
         this.userController.get('/', (req, res) => {
@@ -33,12 +35,32 @@ export class UserController {
 
         this.userController.get('/:username', (req, res) => {
             const username: string = req.params.username;
-            this.userModel.getUserDetailFromUsername_auth(username)
+            this.userModel.getUserDetailFromUsername_auth(req["id"], username)
                 .then(userDetail => {
                     res.status(200).send(userDetail);
                 })
                 .catch(error => {
                     res.status(401).send(this.createErrorJsonResponse(error));
+                })
+        });
+
+        this.userController.get('/:username/challengesPosted', (req, res) => {
+            this.userModel.getListOfChallengesPostedByUser(req.params.username)
+                .then(listOfChallengesPosted => {
+                    res.status(200).send(listOfChallengesPosted);
+                })
+                .catch(error => {
+                    res.status(404).send(this.createErrorJsonResponse(error));
+                })
+        });
+
+        this.userController.get('/:username/challengesTaken', (req, res) => {
+            this.userModel.getListOfChallengesTakenByUser(req.params.username)
+                .then(listOfChallengesTaken => {
+                    res.status(200).send(listOfChallengesTaken);
+                })
+                .catch(error => {
+                    res.status(404).send(this.createErrorJsonResponse(error));
                 })
         });
 
@@ -55,7 +77,7 @@ export class UserController {
         });
 
         this.userController.patch('/:username', (req, res) => {
-            this.userModel.editUserInfo_auth(req.params.username, req.body)
+            this.userModel.editUserInfo_auth(req["id"], req.params.username, req.body)
                 .then(userObject => {
                     res.status(200).send(userObject);
                 })
@@ -65,18 +87,18 @@ export class UserController {
         });
 
         this.userController.delete('/:username', (req, res) => {
-            const username = req.params.username; 
-            this.userModel.deleteUserWithUsername(username)
-            .then(isDeleted => {
-                res.status(200).send(isDeleted);
-            })
-            .catch(error => {
-                res.status(400).send(this.createErrorJsonResponse(error));
-            })
+            const username = req.params.username;
+            this.userModel.deleteUserWithUsername(req["id"], username)
+                .then(isDeleted => {
+                    res.status(200).send(isDeleted);
+                })
+                .catch(error => {
+                    res.status(400).send(this.createErrorJsonResponse(error));
+                })
         });
     }
 
-    private createErrorJsonResponse(error: any): object{
+    private createErrorJsonResponse(error: any): object {
         return {
             "Error": error.message
         };

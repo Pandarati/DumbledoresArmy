@@ -1,7 +1,6 @@
 import * as admin from "firebase-admin";
-import { FirebaseDatabaseHandler } from "./../src/DatabaseWrapper/firebaseDatabaseHandler";
+import { FirebaseDatabaseHandler } from "./../DatabaseWrapper/firebaseDatabaseHandler";
 import { User } from "./User";
-import * as Promise from "bluebird";
 
 export class Challenge {
     constructor(datastore: admin.firestore.Firestore) {
@@ -9,7 +8,7 @@ export class Challenge {
         this.fireStoreDataHandler = new FirebaseDatabaseHandler(datastore);
     }
 
-    private static COLLECTION_ENDPOINT = "/Challenges/"
+    public static COLLECTION_ENDPOINT = "/Challenges/"
     private fireStoreDataHandler: FirebaseDatabaseHandler;
     private firebaseDataStore: admin.firestore.Firestore;
 
@@ -53,14 +52,14 @@ export class Challenge {
                     }
                     return this.fireStoreDataHandler.postRecordForCollectionAtRef(Challenge.COLLECTION_ENDPOINT, challenge)
                         .then(postedObject => {
-                            var challengesPostedRef = documentSnapshot.data()["challengesPostedRef"];
+                            var challengesPostedRef = documentSnapshot.data()["challengesPosted"];
                             challengesPostedRef.push(postedObject["id"]);
                             this.firebaseDataStore.collection(User.COLLECTION_ENDPOINT).doc(userID).set({
-                                "challengesPostedRef": challengesPostedRef
+                                "challengesPosted": challengesPostedRef
                             })
-                            .then(writeResult => {
-                                resolve(postedObject);
-                            })
+                                .then(writeResult => {
+                                    resolve(postedObject);
+                                })
                         })
                 })
                 .catch(error => {
@@ -99,60 +98,6 @@ export class Challenge {
                         listOfChallenges.push(challengeObject);
                     })
                     resolve(listOfChallenges);
-                })
-        });
-    }
-
-    public getListOfChallengesPostedByUser(username: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(User.COLLECTION_ENDPOINT_USERNAME, username)
-                .then(documentSnapshot => {
-                    if (!documentSnapshot.exists) {
-                        reject(new Error("The user with username " + username + " does not exist"));
-                    }
-                    return documentSnapshot.data().userRef.get();
-                })
-                .then(documentSnapshot => {
-                    if (!documentSnapshot.exists) {
-                        reject(new Error("Error retrieving challenges posted by user"));
-                    }
-                    var listOfChallengesPosted =  documentSnapshot.data()["challengesPostedRef"];
-                    Promise.mapSeries(listOfChallengesPosted, (challengeId)=>{
-                        return this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Challenge.COLLECTION_ENDPOINT, challengeId);
-                    })
-                    .then(listOfChallengeObjects => {
-                        resolve(listOfChallengeObjects.reduce((documentSnapshot) => documentSnapshot.data()));
-                    })
-                })
-                .catch(error => {
-                    reject(error);
-                })
-        });
-    }
-
-    public getListOfChallengesTakenByUser(username: string): Promise<any> {
-        return new Promise<any>((resolve, reject) => {
-            this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(User.COLLECTION_ENDPOINT_USERNAME, username)
-                .then(documentSnapshot => {
-                    if (!documentSnapshot.exists) {
-                        reject(new Error("The user with username " + username + " does not exist"));
-                    }
-                    return documentSnapshot.data().userRef.get();
-                })
-                .then(documentSnapshot => {
-                    if (!documentSnapshot.exists) {
-                        reject(new Error("Error retrieving challenges posted by user"));
-                    }
-                    var listOfChallengesPosted =  documentSnapshot.data()["challengesTakenRef"];
-                    Promise.mapSeries(listOfChallengesPosted, (challengeId)=>{
-                        return this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Challenge.COLLECTION_ENDPOINT, challengeId);
-                    })
-                    .then(listOfChallengeObjects => {
-                        resolve(listOfChallengeObjects.reduce((documentSnapshot) => documentSnapshot.data()));
-                    })
-                })
-                .catch(error => {
-                    reject(error);
                 })
         });
     }
