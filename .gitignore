@@ -1,5 +1,4 @@
 node_modules
-secrets
 build
 npm-debug.log
 .env

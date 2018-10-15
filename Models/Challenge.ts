@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import { FirebaseDatabaseHandler } from "./../src/DatabaseWrapper/firebaseDatabaseHandler";
 import { User } from "./User";
+import * as Promise from "bluebird";
 
 export class Challenge {
     constructor(datastore: admin.firestore.Firestore) {
@@ -116,17 +117,12 @@ export class Challenge {
                         reject(new Error("Error retrieving challenges posted by user"));
                     }
                     var listOfChallengesPosted =  documentSnapshot.data()["challengesPostedRef"];
-                    var listOfChallegeObjects = [];
-                    listOfChallengesPosted.forEach((challengeId) => {
-                        console.log(challengeId);
-                        this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Challenge.COLLECTION_ENDPOINT, challengeId)
-                            .then(documentSnapshot => {
-                                if (documentSnapshot.exists) {
-                                    listOfChallegeObjects.push(documentSnapshot.data());
-                                }
-                            })
+                    Promise.mapSeries(listOfChallengesPosted, (challengeId)=>{
+                        return this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Challenge.COLLECTION_ENDPOINT, challengeId);
                     })
-                    resolve(listOfChallegeObjects);
+                    .then(listOfChallengeObjects => {
+                        resolve(listOfChallengeObjects.reduce((documentSnapshot) => documentSnapshot.data()));
+                    })
                 })
                 .catch(error => {
                     reject(error);
@@ -147,19 +143,13 @@ export class Challenge {
                     if (!documentSnapshot.exists) {
                         reject(new Error("Error retrieving challenges posted by user"));
                     }
-                    return documentSnapshot.data().challengesTakenRef;
-                })
-                .then(listOfChallengesTakenRef => {
-                    var listOfChallegeObjects = [];
-                    listOfChallengesTakenRef.forEach((challengeRef) => {
-                        challengeRef.get()
-                            .then(documentSnapshot => {
-                                if (documentSnapshot.exists) {
-                                    listOfChallegeObjects.push(documentSnapshot.data());
-                                }
-                            })
+                    var listOfChallengesPosted =  documentSnapshot.data()["challengesTakenRef"];
+                    Promise.mapSeries(listOfChallengesPosted, (challengeId)=>{
+                        return this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Challenge.COLLECTION_ENDPOINT, challengeId);
                     })
-                    resolve(listOfChallegeObjects);
+                    .then(listOfChallengeObjects => {
+                        resolve(listOfChallengeObjects.reduce((documentSnapshot) => documentSnapshot.data()));
+                    })
                 })
                 .catch(error => {
                     reject(error);
