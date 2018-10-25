@@ -1,4 +1,5 @@
 import * as express from "express";
+import * as cors from 'cors';
 import * as bodyParser from "body-parser";
 import * as path from "path";
 import * as admin from 'firebase-admin'
@@ -6,8 +7,10 @@ import * as firebase from 'firebase'
 import { ChallengeController } from "./controllers/challengeContoller";
 import { GeneralController } from "./controllers/generalContoller";
 import { UserController } from "./controllers/userController";
-import { User } from "./Models/User";
-import { Challenge } from "./Models/Challenge";
+import { UserDatabaseHandler } from "./DatabaseHandlers/UserDatabaseHandler";
+import { ChallengeDatabaseHandler } from "./DatabaseHandlers/ChallengeDatabaseHandler";
+import { stat } from "fs";
+import { runInNewContext } from "vm";
 
 class App {
   constructor() {
@@ -16,9 +19,9 @@ class App {
     this.initializeAuthenticationWithFirebase();
     this.initializeFirebaseDataStore();
     this.initializeAuthMiddleware();
+    this.setupCors();
     this.config();
     this.routes();
-
     // For testing the JWT token mechanism. 
     this.createUserAndGetId();
   }
@@ -45,7 +48,20 @@ class App {
 
   private initializeAuthMiddleware(): void {
     const authMiddleware = (req, res, next) => {
-      var accessToken = req.headers['authorization'] || '';
+      console.log("Here");
+      if ((req.originalUrl === '/api' && req.method === "GET") ||
+        (req.originalUrl === '/api/challenges' && req.method === "GET") ||
+        (req.originalUrl === '/api/challenge/:id' && req.method === "GET")) {
+        return next();
+      }
+
+      var accessToken: any;
+      if (req.headers.authorization && req.headers.authorization.split(' '[0] === 'Bearer')) {
+        accessToken = req.headers.authorization.split(' ')[1];
+      } else {
+        accessToken = ' ';
+      }
+
       this.firebaseAdmin.auth().verifyIdToken(accessToken)
         .then(function (decodedToken) {
           console.log(decodedToken.id);
@@ -53,10 +69,15 @@ class App {
           next();
         })
         .catch(function (error) {
+          console.log(error);
           res.sendStatus(404);
         });
     }
     this.app.use(authMiddleware);
+  }
+
+  private setupCors(): void {
+    this.app.use(cors());
   }
 
   private config(): void {
@@ -65,9 +86,30 @@ class App {
   }
 
   private routes(): void {
-    this.app.use('/api/users', new UserController(new User(this.firebaseDatabase)).userController);
-    this.app.use('/api/challenges', new ChallengeController(new Challenge(this.firebaseDatabase)).challengeController);
+    this.app.use('/api/users', new UserController(new UserDatabaseHandler(this.firebaseDatabase)).userController);
+    this.app.use('/api/challenges', new ChallengeController(new ChallengeDatabaseHandler(this.firebaseDatabase)).challengeController);
     this.app.use('/', new GeneralController().generalController);
+  }
+
+  private setupResponseMiddleware(): void {
+    const responseMiddleware = (req, res, next) => {
+      console.log("Here I am");
+      var status = "";
+      if (String(res.status).substring(0, 1) === "4" || String(res.status).substring(0, 1) === "5") {
+        status = "Error"
+      } else {
+        status = "OK"
+      }
+      console.log(status);
+      res = {
+        "status": status,
+        "code": res.status,
+        "messages": [],
+        "result": res.body
+      }
+      next();
+    }
+    this.app.use(responseMiddleware);
   }
 
 
@@ -82,16 +124,13 @@ class App {
       storageBucket: "geoquiz-1e874.appspot.com",
       messagingSenderId: "804254899672"
     });
-    firebase.auth().signInWithEmailAndPassword("aayush.gupta@bison.howard.edu", "aayush")
+    firebase.auth().signInWithEmailAndPassword("b@google.com", "Howard")
       .then((userCred) => {
         var user = userCred.user;
         user.getIdToken(true)
           .then((idToken) => {
             console.log("Id token", idToken);
           })
-          .catch((error) => {
-            console.log("Error ", error);
-          });
       }).
       catch((error) => {
         console.log("Error", error);

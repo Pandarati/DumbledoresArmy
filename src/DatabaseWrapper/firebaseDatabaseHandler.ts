@@ -24,7 +24,7 @@ export class FirebaseDatabaseHandler {
          */
         var collectionReference = this.firebaseDatastore.collection(collectionName);
         return new Promise<object>(function (resolve, reject) {
-            collectionReference.doc(id).set(objectToUpdate)
+            collectionReference.doc(id).update(objectToUpdate)
                 .then(result => {
                     resolve(result);
                 })
@@ -85,11 +85,17 @@ export class FirebaseDatabaseHandler {
         })
     }
 
-    public getListOfRecordsForCollectionAtRef(collectionName: string): Promise<QuerySnapshot> {
+    public getListOfRecordsForCollectionAtRef(collectionName: string, limit: number, sortBy: string): Promise<QuerySnapshot> {
         /**
          * Returns QuerySnapshot for a listOfTheRecords. 
          */
-        var collectionReference = this.firebaseDatastore.collection(collectionName);
-        return collectionReference.get();
+        if (sortBy != undefined && limit != undefined){
+            return this.firebaseDatastore.collection(collectionName).orderBy(sortBy).limit(Number(limit)).get();
+        }else if (sortBy != undefined){
+            return this.firebaseDatastore.collection(collectionName).orderBy(sortBy).get();
+        }else if (limit != undefined){
+            return this.firebaseDatastore.collection(collectionName).limit(Number(limit)).get();
+        }
+        return this.firebaseDatastore.collection(collectionName).get();
     }
 }
