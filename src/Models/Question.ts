@@ -1,22 +1,17 @@
 import { JsonObject, JsonProperty } from "json2typescript";
 
-export class QuestionDictionary{
-
-}
-
 @JsonObject("Question")
-export class Question{
+export class Question {
 
-    @JsonProperty("quesitonText", String, false)
+    @JsonProperty("questionText", String)
     questionText: string = undefined;
 
-    @JsonProperty("choices", [String], false)
+    @JsonProperty("choices", [String])
     choices: string[] = undefined;
 
-    @JsonProperty("correctAnswerIndex", Number, false)
+    @JsonProperty("correctAnswerIndex", Number)
     correctAnswerIndex: number = undefined;
 
-    constructor(){
-
+    constructor() {
     }
 }

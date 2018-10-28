@@ -18,22 +18,22 @@ export class User {
     @JsonProperty("profileImageUrl", String)
     profileImageUrl: string = undefined;
 
-    @JsonProperty("totalScore", Number)
+    @JsonProperty("totalScore", Number, true)
     totalScore: number = 0;
 
-    @JsonProperty("challengesPosted", [Challenge], true)
-    challengesPosted: Challenge[] = [];
+    @JsonProperty("challengesPostedRef", [Challenge], true)
+    challengesPostedRef: Challenge[] = [];
 
-    @JsonProperty("challengesTaken", [Challenge], true)
-    challengesTaken: Challenge[] = [];
+    @JsonProperty("challengesTakenRef", Object, true)
+    challengesTakenRef: Object = {};
 
     @JsonProperty("numberOfChallengesPosted", Number, true)
     numberOfChallengesPosted: number = 0;
 
     @JsonProperty("numberOfChallengesTaken", Number, true)
-    numberOfChallengesTaken: number = 0;    
+    numberOfChallengesTaken: number = 0;
 
-    @JsonProperty("datePosted", String, true)
+    @JsonProperty("dateCreated", String, true)
     datePosted: string = new Date(Date.now()).toUTCString();
 
     @JsonProperty("dateModified", String, true)

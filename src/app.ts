@@ -9,9 +9,10 @@ import { GeneralController } from "./controllers/generalContoller";
 import { UserController } from "./controllers/userController";
 import { UserDatabaseHandler } from "./DatabaseHandlers/UserDatabaseHandler";
 import { ChallengeDatabaseHandler } from "./DatabaseHandlers/ChallengeDatabaseHandler";
-import { stat } from "fs";
-import { runInNewContext } from "vm";
 
+/**
+ * Entry point for the API Service. 
+ */
 class App {
   constructor() {
     this.app = express();
@@ -30,11 +31,18 @@ class App {
   public app: express.Application;
   public firebaseAdmin: admin.app.App;
   private firebaseDatabase: admin.firestore.Firestore;
+  private static AUTH_ENDPONTS: String[] = []
 
+  /**
+   * Method to get Firebase Service Credentials. 
+   */
   private getServiceAccountCredentials() {
     this.serviceAccount = require(path.join(__dirname, './secrets/serviceAccountKey.json'));
   }
 
+  /**
+   * Method to Initialize Authentication with Firebase. 
+   */
   private initializeAuthenticationWithFirebase(): void {
     this.firebaseAdmin = admin.initializeApp({
       credential: admin.credential.cert(this.serviceAccount),
@@ -42,80 +50,68 @@ class App {
     });
   }
 
+  /**
+   * Method to intialize Firebase Firestore. 
+   */
   private initializeFirebaseDataStore(): void {
     this.firebaseDatabase = admin.firestore();
   }
 
+  /**
+   * Method to initialize authentication middleware. 
+   * Setup endpoints that don't require JWT authentication. 
+   */
   private initializeAuthMiddleware(): void {
     const authMiddleware = (req, res, next) => {
-      console.log("Here");
       if ((req.originalUrl === '/api' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges' && req.method === "GET") ||
-        (req.originalUrl === '/api/challenge/:id' && req.method === "GET")) {
+        (req.originalUrl === '/api/challenges/:id' && req.method === "GET")) {
         return next();
       }
-
-      var accessToken: any;
+      var accessToken: string;
       if (req.headers.authorization && req.headers.authorization.split(' '[0] === 'Bearer')) {
         accessToken = req.headers.authorization.split(' ')[1];
       } else {
         accessToken = ' ';
       }
-
       this.firebaseAdmin.auth().verifyIdToken(accessToken)
         .then(function (decodedToken) {
-          console.log(decodedToken.id);
           req.id = decodedToken.uid;
           next();
         })
         .catch(function (error) {
-          console.log(error);
-          res.sendStatus(404);
+          res.status(401).send(error);
         });
     }
     this.app.use(authMiddleware);
   }
 
+  /**
+   * Method to Setup CORS https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+   */
   private setupCors(): void {
     this.app.use(cors());
   }
 
+  /**
+   * Method to setup JSON Body Parser. 
+   */
   private config(): void {
     this.app.use(bodyParser.json());
     this.app.use(bodyParser.urlencoded({ extended: false }));
   }
 
+  /**
+   * Main method to setup controllers to API Endpoints. 
+   */
   private routes(): void {
     this.app.use('/api/users', new UserController(new UserDatabaseHandler(this.firebaseDatabase)).userController);
     this.app.use('/api/challenges', new ChallengeController(new ChallengeDatabaseHandler(this.firebaseDatabase)).challengeController);
     this.app.use('/', new GeneralController().generalController);
   }
 
-  private setupResponseMiddleware(): void {
-    const responseMiddleware = (req, res, next) => {
-      console.log("Here I am");
-      var status = "";
-      if (String(res.status).substring(0, 1) === "4" || String(res.status).substring(0, 1) === "5") {
-        status = "Error"
-      } else {
-        status = "OK"
-      }
-      console.log(status);
-      res = {
-        "status": status,
-        "code": res.status,
-        "messages": [],
-        "result": res.body
-      }
-      next();
-    }
-    this.app.use(responseMiddleware);
-  }
-
-
   // Testing purposes only. 
   private createUserAndGetId(): void {
-
     firebase.initializeApp({
       apiKey: "AIzaSyCjAcWtMLdUUn1qHnIgG7Z5i_LyQh9FXn0",
       authDomain: "geoquiz-1e874.firebaseapp.com",
@@ -124,7 +120,7 @@ class App {
       storageBucket: "geoquiz-1e874.appspot.com",
       messagingSenderId: "804254899672"
     });
-    firebase.auth().signInWithEmailAndPassword("b@google.com", "Howard")
+    firebase.auth().signInWithEmailAndPassword("gaayush@google.com", "Howard")
       .then((userCred) => {
         var user = userCred.user;
         user.getIdToken(true)

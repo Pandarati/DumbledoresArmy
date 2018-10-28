@@ -1,0 +1,49 @@
+{
+    "CreateNewUser": {
+        "userName": "SampleUser",
+        "name": "Sample User",
+        "dateOfBirth": "1999/01/01",
+        "emailAddress": "sampleuser@gmail.com",
+        "profileImageUrl": "sample-user.cdn.com"
+    },
+    "CreateNewChallenge": {
+        "challengeName": "Sample Challenge 1",
+        "tags": [
+            "Nepal",
+            "Scenery"
+        ],
+        "location": {
+            "latitude": 12.34,
+            "longitude": 23.98
+        },
+        "questions": {
+            "1": {
+                "questionText": "What is the capital of Nepal?",
+                "choices": [
+                    "Kathmandu",
+                    "New Delhi",
+                    "Goa",
+                    "Pokhara"
+                ],
+                "correctAnswerIndex": 0
+            },
+            "2": {
+                "questionText": "What is the capital of India?",
+                "choices": [
+                    "Kathmandu",
+                    "New Delhi",
+                    "Goa",
+                    "Pokhara"
+                ],
+                "correctAnswerIndex": 1
+            }
+        }
+    },
+    "SampleChallengeResponse": {
+        "numberOfQuestions": 2,
+        "questionChoices": [
+            0,
+            2
+        ]
+    }
+}

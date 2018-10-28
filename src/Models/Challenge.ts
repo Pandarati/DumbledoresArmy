@@ -1,24 +1,31 @@
 import { JsonObject, JsonProperty, JsonConverter, JsonCustomConvert, JsonConvert, OperationMode, ValueCheckingMode } from "json2typescript";
 import { Question } from "./Question";
-import { Location } from "./Location";
+import { ChallengeResponse } from "./ChallengeResponse";
 
+/**
+ * Custom converter for Question mapping in the Challenge object. 
+ */
 @JsonConverter
-class QuestionConverter implements JsonCustomConvert<[Question]>{
+class QuestionConverter implements JsonCustomConvert<Question[]>{
 
-    deserialize(questionMapping: object) {
-        var jsonConvert = new JsonConvert();
-        jsonConvert.operationMode = OperationMode.LOGGING;
-        jsonConvert.ignorePrimitiveChecks = false;
-        jsonConvert.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL;
+    constructor() {
+        this.jsonConvert = new JsonConvert();
+        this.jsonConvert.operationMode = OperationMode.ENABLE;
+        this.jsonConvert.ignorePrimitiveChecks = false;
+        this.jsonConvert.valueCheckingMode = ValueCheckingMode.DISALLOW_NULL;
+    }
 
-        var listOfQuestionObjects: [Question];
+    jsonConvert: JsonConvert;
+
+    deserialize(questionMapping: any): Question[] {
+        var listOfQuestionObjects: Question[] = [];
         for (let key in questionMapping) {
-            listOfQuestionObjects.push(jsonConvert.deserialize(questionMapping[key], Question))
+            listOfQuestionObjects.push(this.jsonConvert.deserialize(questionMapping[key], Question))
         }
         return listOfQuestionObjects;
     }
 
-    serialize(questionList: [object]): object {
+    serialize(questionList: Question[]): any {
         var count = 1;
         var questionMapping = {};
         questionList.forEach(question => {
@@ -31,23 +38,27 @@ class QuestionConverter implements JsonCustomConvert<[Question]>{
 
 @JsonObject("Challenge")
 export class Challenge {
+
     @JsonProperty("challengeName", String)
     challengeName: string = undefined;
 
     @JsonProperty("tags", [String])
     tags: string[] = undefined;
 
-    @JsonProperty("location", Location)
-    location: Location = undefined;
+    @JsonProperty("location", Object)
+    location: object = undefined;
 
     @JsonProperty("questions", QuestionConverter)
-    questions: object = undefined;
+    questions: Question[] = undefined;
 
     @JsonProperty("postedBy", String, true)
     postedBy: string;
 
     @JsonProperty("datePosted", String, true)
     datePosted: string = new Date(Date.now()).toUTCString();
+
+    @JsonProperty("dateModified", String, true)
+    dateModified: string = new Date(Date.now()).toUTCString();
 
     @JsonProperty("numberOfAttempts", Number, true)
     numberOfAttempts: number = 0;
@@ -56,5 +67,20 @@ export class Challenge {
     id: number;
 
     constructor() {
+    }
+
+    public getQuestions(): Question[] {
+        return this.questions;
+    }
+
+    public static ScoreChallengeForResponse(challenge: Challenge, challengeResponse: ChallengeResponse): number {
+        var questions = challenge.getQuestions();
+        var counter = 0;
+        var score = 0;
+        questions.forEach(question => {
+            if (question.correctAnswerIndex === challengeResponse.questionChoices[counter]) score++;
+            counter += 1
+        })
+        return score;
     }
 }
