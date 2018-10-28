@@ -4,7 +4,7 @@ import { UserDatabaseHandler } from "./UserDatabaseHandler";
 import { Challenge } from "../Models/Challenge";
 import { ChallengeResponse } from "./../Models/ChallengeResponse";
 import { JsonConvert, OperationMode, ValueCheckingMode } from 'json2typescript';
-import { Constants } from "../constants";
+import { Constants } from "./../constants";
 
 export class ChallengeDatabaseHandler {
 
