@@ -98,7 +98,7 @@ export class UserDatabaseHandler {
      */
     public createAUser_auth(user: User, userId: string): Promise<object> {
         let usernameToUserIdMap: object = {
-            [Constants.USER_FIELDS.USER_REF]: this.firebaseDataStore.doc(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT + userId)
+            [Constants.USER_FIELDS.USER_REF]: this.firebaseDataStore.doc(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT + "/" + userId)
         };
         return new Promise<object>((resolve, reject) => {
             this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT, userId)

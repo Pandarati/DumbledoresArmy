@@ -48,11 +48,10 @@ export class UserController {
                 .catch(error => {
                     res.status(404).send(this.wrapResponse(404, this.createErrorJsonResponse(error)));
                 })
-        })
+        });
 
         this.userController.get('/:username', (req, res) => {
             const username: string = req.params.username;
-
             this.userModel.getUserDetailFromUsername_auth(req["id"], username)
                 .then(userDetail => {
                     res.status(200).send(this.wrapResponse(200, userDetail));
@@ -108,7 +107,7 @@ export class UserController {
                 .catch(error => {
                     res.status(404).send(this.wrapResponse(404, this.createErrorJsonResponse(error)));
                 })
-                
+
         });
 
         this.userController.patch('/:username', (req, res) => {

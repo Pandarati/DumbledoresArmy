@@ -3,7 +3,7 @@ import { JsonObject, JsonProperty } from "json2typescript";
 @JsonObject("User")
 export class User {
 
-    @JsonProperty("userName", String)
+    @JsonProperty("username", String)
     username: string = undefined;
 
     @JsonProperty("name", String)

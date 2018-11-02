@@ -5,13 +5,13 @@ export class Constants {
 
     public static COLLECTION_ENDPOINTS = class {
         public static CHALLENGE_COLLECTION_ENDPOINT = "/Challenges/";
-        public static USER_COLLECTION_ENDPOINT = "/Users/";
+        public static USER_COLLECTION_ENDPOINT = "/Users";
         public static CHALLENGE_RESPONSE_COLLECTION_ENDPOINT = "/Challenges_Response/";
-        public static USERNAME_USERID_COLLECTION_ENDPOINT = "/Username_UserID/";
+        public static USERNAME_USERID_COLLECTION_ENDPOINT = "/Username_UserID";
     }
 
     public static USER_FIELDS = class {
-        public static USERNAME = "userName";
+        public static USERNAME = "username";
         public static NAME = "name";
         public static DATE_OF_BIRTH = "dateOfBirth";
         public static EMAIL_ADDRESS = "emailAddress";

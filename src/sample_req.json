@@ -1,6 +1,6 @@
 {
     "CreateNewUser": {
-        "userName": "SampleUser",
+        "username": "SampleUser",
         "name": "Sample User",
         "dateOfBirth": "1999/01/01",
         "emailAddress": "sampleuser@gmail.com",

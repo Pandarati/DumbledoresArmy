@@ -19,8 +19,8 @@ class App {
     this.getServiceAccountCredentials();
     this.initializeAuthenticationWithFirebase();
     this.initializeFirebaseDataStore();
-    this.initializeAuthMiddleware();
     this.setupCors();
+    this.initializeAuthMiddleware();
     this.config();
     this.routes();
     // For testing the JWT token mechanism. 
@@ -62,7 +62,9 @@ class App {
    * Setup endpoints that don't require JWT authentication. 
    */
   private initializeAuthMiddleware(): void {
+    console.log("Initialize");
     const authMiddleware = (req, res, next) => {
+      console.log(req.headers);
       if ((req.originalUrl === '/api' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges/:id' && req.method === "GET")) {
@@ -90,6 +92,16 @@ class App {
    * Method to Setup CORS https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
    */
   private setupCors(): void {
+    var whitelist = [
+      'http://localhost:4200',
+    ];
+    var corsOptions = {
+      origin: function (origin, callback) {
+        var originIsWhitelisted = whitelist.indexOf(origin) !== -1;
+        callback(null, originIsWhitelisted);
+      },
+      credentials: true
+    };
     this.app.use(cors());
   }
 
