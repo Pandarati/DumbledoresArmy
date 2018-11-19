@@ -232,55 +232,60 @@ export class ChallengeDatabaseHandler {
         return new Promise<object>((resolve, reject) => {
             this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT, userID)
                 .then(documentSnapshot => {
-                    var challengesTaken = documentSnapshot.data()[Constants.USER_FIELDS.CHALLENGES_TAKEN_REF];
-                    if (challengesTaken == undefined) challengesTaken = [];
-
-                    var challengesTakenIds = Object.keys(challengesTaken);
-                    if (challengesTakenIds.includes(challengeID)) {
-                        reject(new Error("The user has already taken this challenge."));
+                    if (!documentSnapshot.exists) {
+                        reject(new Error("The user does not exist."));
                     } else {
-                        this.getChallengeWithId(challengeID)
-                            .then(challengeObject => {
-                                if (challengeObject === undefined) {
-                                    reject(new Error("The challenge for challengeId " + challengeID + " does not exist"));
-                                } else {
-                                    var challenge: Challenge = this.jsonConvert.deserialize(challengeObject, Challenge);
-                                    var challengeResponseScore: number = Challenge.ScoreChallengeForResponse(challenge, challengeResponse);
-                                    challengeResponse.score = challengeResponseScore;
-                                    challengeResponse.challenge = challenge;
+                        var challengesTaken = documentSnapshot.data()[Constants.USER_FIELDS.CHALLENGES_TAKEN_REF];
+                        if (challengesTaken === undefined) challengesTaken = [];
 
-                                    this.fireStoreDataHandler.postRecordForCollectionAtRef(Constants.COLLECTION_ENDPOINTS.CHALLENGE_RESPONSE_COLLECTION_ENDPOINT, JSON.parse(JSON.stringify(challengeResponse)))
-                                        .then(postedObject => {
-                                            challengesTaken[challengeID] = this.firebaseDataStore.doc(Constants.COLLECTION_ENDPOINTS.CHALLENGE_RESPONSE_COLLECTION_ENDPOINT + postedObject['id']);
+                        var challengesTakenIds = Object.keys(challengesTaken);
+                        if (challengesTakenIds.includes(challengeID)) {
+                            reject(new Error("The user has already taken this challenge."));
+                        } else {
+                            this.getChallengeWithId(challengeID)
+                                .then(challengeObject => {
+                                    if (challengeObject === undefined) {
+                                        reject(new Error("The challenge for challengeId " + challengeID + " does not exist"));
+                                    } else {
+                                        var challenge: Challenge = this.jsonConvert.deserialize(challengeObject, Challenge);
+                                        var challengeResponseScore: number = Challenge.ScoreChallengeForResponse(challenge, challengeResponse);
+                                        challengeResponse.score = challengeResponseScore;
+                                        challengeResponse.challenge = challenge;
+                                        challengeResponse.correctChoices = challenge.getCorrectAnswerChoices();
 
-                                            var totalScore = Number(documentSnapshot.data()[Constants.USER_FIELDS.TOTAL_SCORE]);
-                                            var numberOfChallengesTaken = Number(documentSnapshot.data()[Constants.USER_FIELDS.NUMBER_OF_CHALLENGES_TAKEN]);
+                                        this.fireStoreDataHandler.postRecordForCollectionAtRef(Constants.COLLECTION_ENDPOINTS.CHALLENGE_RESPONSE_COLLECTION_ENDPOINT, JSON.parse(JSON.stringify(challengeResponse)))
+                                            .then(postedObject => {
+                                                challengesTaken[challengeID] = this.firebaseDataStore.doc(Constants.COLLECTION_ENDPOINTS.CHALLENGE_RESPONSE_COLLECTION_ENDPOINT + postedObject['id']);
 
-                                            numberOfChallengesTaken += 1;
-                                            totalScore += challengeResponseScore;
+                                                var totalScore = Number(documentSnapshot.data()[Constants.USER_FIELDS.TOTAL_SCORE]);
+                                                var numberOfChallengesTaken = Number(documentSnapshot.data()[Constants.USER_FIELDS.NUMBER_OF_CHALLENGES_TAKEN]);
 
-                                            var numberOfAttemptsForChallenge = challenge.numberOfAttempts;
-                                            numberOfAttemptsForChallenge++;
+                                                numberOfChallengesTaken += 1;
+                                                totalScore += challengeResponseScore;
+
+                                                var numberOfAttemptsForChallenge = challenge.numberOfAttempts;
+                                                numberOfAttemptsForChallenge++;
 
 
-                                            this.fireStoreDataHandler.patchRecordForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.CHALLENGE_COLLECTION_ENDPOINT, challengeID, {
-                                                [Constants.CHALLENGE_FIELDS.NUMBER_OF_ATTEMPTS]: numberOfAttemptsForChallenge
-                                            })
-
-                                            this.fireStoreDataHandler.patchRecordForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT, userID, {
-                                                [Constants.USER_FIELDS.CHALLENGES_TAKEN_REF]: challengesTaken,
-                                                [Constants.USER_FIELDS.NUMBER_OF_CHALLENGES_TAKEN]: numberOfChallengesTaken,
-                                                [Constants.USER_FIELDS.TOTAL_SCORE]: totalScore
-                                            })
-                                                .then(_ => {
-                                                    resolve(challengeResponse);
+                                                this.fireStoreDataHandler.patchRecordForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.CHALLENGE_COLLECTION_ENDPOINT, challengeID, {
+                                                    [Constants.CHALLENGE_FIELDS.NUMBER_OF_ATTEMPTS]: numberOfAttemptsForChallenge
                                                 })
-                                                .catch(error => {
-                                                    reject(error);
+
+                                                this.fireStoreDataHandler.patchRecordForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT, userID, {
+                                                    [Constants.USER_FIELDS.CHALLENGES_TAKEN_REF]: challengesTaken,
+                                                    [Constants.USER_FIELDS.NUMBER_OF_CHALLENGES_TAKEN]: numberOfChallengesTaken,
+                                                    [Constants.USER_FIELDS.TOTAL_SCORE]: totalScore
                                                 })
-                                        })
-                                }
-                            })
+                                                    .then(_ => {
+                                                        resolve(challengeResponse);
+                                                    })
+                                                    .catch(error => {
+                                                        reject(error);
+                                                    })
+                                            })
+                                    }
+                                })
+                        }
                     }
                 }).catch(error => {
                     reject(error);

@@ -10,6 +10,9 @@ export class ChallengeResponse {
     @JsonProperty("questionChoices", [Number])
     questionChoices: number[] = undefined;
 
+    @JsonProperty("correctChoices", [Number], true)
+    correctChoices: number[] = undefined;
+
     @JsonProperty("score", Number, true)
     score: number = undefined;
 

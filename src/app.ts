@@ -24,7 +24,7 @@ class App {
     this.config();
     this.routes();
     // For testing the JWT token mechanism. 
-    this.createUserAndGetId();
+    // this.createUserAndGetId();
   }
 
   private serviceAccount: object;
@@ -64,7 +64,7 @@ class App {
   private initializeAuthMiddleware(): void {
     console.log("Initialize");
     const authMiddleware = (req, res, next) => {
-      console.log(req.headers);
+      console.log(req.body);
       if ((req.originalUrl === '/api' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges/:id' && req.method === "GET")) {
@@ -122,28 +122,28 @@ class App {
     this.app.use('/', new GeneralController().generalController);
   }
 
-  // Testing purposes only. 
-  private createUserAndGetId(): void {
-    firebase.initializeApp({
-      apiKey: "AIzaSyCjAcWtMLdUUn1qHnIgG7Z5i_LyQh9FXn0",
-      authDomain: "geoquiz-1e874.firebaseapp.com",
-      databaseURL: "https://geoquiz-1e874.firebaseio.com",
-      projectId: "geoquiz-1e874",
-      storageBucket: "geoquiz-1e874.appspot.com",
-      messagingSenderId: "804254899672"
-    });
-    firebase.auth().signInWithEmailAndPassword("gaayush@google.com", "Howard")
-      .then((userCred) => {
-        var user = userCred.user;
-        user.getIdToken(true)
-          .then((idToken) => {
-            console.log("Id token", idToken);
-          })
-      }).
-      catch((error) => {
-        console.log("Error", error);
-      });
-  }
+  // // Testing purposes only. 
+  // private createUserAndGetId(): void {
+  //   firebase.initializeApp({
+  //     apiKey: "AIzaSyCjAcWtMLdUUn1qHnIgG7Z5i_LyQh9FXn0",
+  //     authDomain: "geoquiz-1e874.firebaseapp.com",
+  //     databaseURL: "https://geoquiz-1e874.firebaseio.com",
+  //     projectId: "geoquiz-1e874",
+  //     storageBucket: "geoquiz-1e874.appspot.com",
+  //     messagingSenderId: "804254899672"
+  //   });
+  //   firebase.auth().signInWithEmailAndPassword("gaayush@google.com", "Howard")
+  //     .then((userCred) => {
+  //       var user = userCred.user;
+  //       user.getIdToken(true)
+  //         .then((idToken) => {
+  //           console.log("Id token", idToken);
+  //         })
+  //     }).
+  //     catch((error) => {
+  //       console.log("Error", error);
+  //     });
+  // }
 }
 
 export default new App().app;

@@ -87,6 +87,25 @@ export class UserDatabaseHandler {
         });
     }
 
+    getUserDetailFromUserId(userId: string): Promise<object> {
+        return new Promise<object>((resolve, reject) => {
+            this.fireStoreDataHandler.getDocumentSnapshotForCollectionAtRefAndId(Constants.COLLECTION_ENDPOINTS.USER_COLLECTION_ENDPOINT, userId)
+                .then(documentSnapshot => {
+                    if (!documentSnapshot.exists) {
+                        reject(new Error("The user doesn't exist."));
+                    } else {
+                        var userInfo: object = documentSnapshot.data();
+                        delete userInfo[Constants.USER_FIELDS.CHALLENGES_TAKEN_REF];
+                        delete userInfo[Constants.USER_FIELDS.CHALLENGES_POSTED_REF];
+                        resolve(userInfo)
+                    }
+                })
+                .catch(error => {
+                    reject(Error("Error getting user detail from the database"));
+                });
+        })
+    }
+
     /**
      * 
      * @param user User object to create new user. 

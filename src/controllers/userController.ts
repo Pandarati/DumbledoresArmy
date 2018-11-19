@@ -50,6 +50,16 @@ export class UserController {
                 })
         });
 
+        this.userController.get('/me', (req, res) => {
+            this.userModel.getUserDetailFromUserId(req["id"])
+                .then(userDetail => {
+                    res.status(200).send(this.wrapResponse(200, userDetail));
+                })
+                .catch(error => {
+                    res.status(401).send(this.wrapResponse(401, this.createErrorJsonResponse(error)));
+                })
+        });
+
         this.userController.get('/:username', (req, res) => {
             const username: string = req.params.username;
             this.userModel.getUserDetailFromUsername_auth(req["id"], username)

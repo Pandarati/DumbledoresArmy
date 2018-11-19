@@ -83,4 +83,12 @@ export class Challenge {
         })
         return score;
     }
+
+    public getCorrectAnswerChoices(): number[] {
+        const correctAnswerChoices = [];
+        this.questions.forEach(question => {
+            correctAnswerChoices.push(question.correctAnswerIndex);
+        })
+        return correctAnswerChoices;
+    }
 }
