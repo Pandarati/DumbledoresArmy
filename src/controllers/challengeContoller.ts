@@ -68,7 +68,6 @@ export class ChallengeController {
         this.challengeController.post('/', (req, res) => {
             res.type('json');
             var userID = req["id"];
-
             try {
                 var challenge: Challenge = this.jsonConvert.deserialize(req.body, Challenge);
             }

@@ -342,10 +342,8 @@ export class UserDatabaseHandler {
      *  - profileImageurl
      */
     private IsFieldsInTheObjectToUpdateValid(objectToUpdate: object): boolean {
-        console.log(objectToUpdate);
         if (Object.keys(objectToUpdate).length > Constants.USER_FIELDS.USER_UPDATE_KEYS.length) return false;
         var keysToUpdate: string[] = Object.keys(objectToUpdate).sort((one, two) => (one > two ? -1 : 1));
-        console.log(keysToUpdate);
         var count = 0;
         keysToUpdate.forEach(updateKey => {
             if (updateKey !== Constants.USER_FIELDS.USER_UPDATE_KEYS[count]) return false;

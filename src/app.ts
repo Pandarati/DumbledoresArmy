@@ -62,9 +62,7 @@ class App {
    * Setup endpoints that don't require JWT authentication. 
    */
   private initializeAuthMiddleware(): void {
-    console.log("Initialize");
     const authMiddleware = (req, res, next) => {
-      console.log(req.body);
       if ((req.originalUrl === '/api' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges' && req.method === "GET") ||
         (req.originalUrl === '/api/challenges/:id' && req.method === "GET")) {
@@ -122,7 +120,7 @@ class App {
     this.app.use('/', new GeneralController().generalController);
   }
 
-  // // Testing purposes only. 
+  // Testing purposes only. 
   // private createUserAndGetId(): void {
   //   firebase.initializeApp({
   //     apiKey: "AIzaSyCjAcWtMLdUUn1qHnIgG7Z5i_LyQh9FXn0",
@@ -132,7 +130,7 @@ class App {
   //     storageBucket: "geoquiz-1e874.appspot.com",
   //     messagingSenderId: "804254899672"
   //   });
-  //   firebase.auth().signInWithEmailAndPassword("gaayush@google.com", "Howard")
+  //   firebase.auth().signInWithEmailAndPassword("b@google.com", "Howard")
   //     .then((userCred) => {
   //       var user = userCred.user;
   //       user.getIdToken(true)

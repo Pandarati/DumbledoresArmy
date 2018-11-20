@@ -207,6 +207,10 @@ export class ChallengeDatabaseHandler {
                     var listOfChallenges: object[] = []
                     querySnapshot.forEach(document => {
                         var challengeObject = document.data();
+                        // Remove the correctAnswers when requesting for a challenge. 
+                        challengeObject["questions"].forEach(question => {
+                            delete question.correctAnswerIndex;
+                        })
                         listOfChallenges.push(challengeObject);
                     })
                     resolve(listOfChallenges);
