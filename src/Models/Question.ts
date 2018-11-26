@@ -12,6 +12,7 @@ export class Question {
     @JsonProperty("correctAnswerIndex", Number)
     correctAnswerIndex: number = undefined;
 
-    constructor() {
+    constructor(questionObject: Object) {
+        Object.assign(this, questionObject);
     }
 }

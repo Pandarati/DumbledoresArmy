@@ -17,22 +17,20 @@ class QuestionConverter implements JsonCustomConvert<Question[]>{
 
     jsonConvert: JsonConvert;
 
-    deserialize(questionMapping: any): Question[] {
+    deserialize(questionObjects: any): Question[] {
         var listOfQuestionObjects: Question[] = [];
-        for (let key in questionMapping) {
-            listOfQuestionObjects.push(this.jsonConvert.deserialize(questionMapping[key], Question))
-        }
+        questionObjects.forEach(qObject => {
+            listOfQuestionObjects.push(new Question(qObject));
+        })
         return listOfQuestionObjects;
     }
 
     serialize(questionList: Question[]): any {
-        var count = 1;
-        var questionMapping = {};
+        var listOfQuestionObjects = [];
         questionList.forEach(question => {
-            questionMapping[count] = question;
-            count++;
+            listOfQuestionObjects.push(JSON.stringify(question));
         })
-        return questionMapping;
+        return listOfQuestionObjects;
     }
 }
 
